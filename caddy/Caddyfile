@@ -1,0 +1,77 @@
+# The Caddyfile is an easy way to configure your Caddy web server.
+#
+# Unless the file starts with a global options block, the first
+# uncommented line is always the address of your site.
+#
+# To use your own domain name (with automatic HTTPS), first make
+# sure your domain's A/AAAA DNS records are properly pointed to
+# this machine's public IP, then replace ":80" below with your
+# domain name.
+
+{
+	order authorize before basicauth
+
+	security {
+		authorization policy adminAuthPolicy {
+			set token sources cookie
+			set auth url https://terraex.at/
+
+			crypto key verify ajjZ2AN#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X FIXME
+
+#			allow roles authenticated
+			acl rule {
+				comment Allow specific user to enter
+				match sub a7b22aab-#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X#X FIXME
+				allow any
+			}
+		}
+	}
+}
+
+www.terraex.at {
+	redir https://terraex.at{uri}
+}
+
+terraex.at {
+	tls mahe@terraex.de
+	root * /srv/supabase_auth_app
+	file_server
+}
+
+api.terraex.at {
+	@apipaths {
+		path /rest/*
+		path /auth/*
+		path /storage/*
+		path /realtime/*
+		path /functions/*
+	}
+
+	handle @apipaths {
+		reverse_proxy localhost:8000
+	}
+
+	handle {
+		redir https://terraex.at
+	}
+}
+
+supabase.terraex.at {
+	@apipaths {
+		path /rest/*
+		path /auth/*
+		path /storage/*
+		path /realtime/*
+		path /functions/*
+	}
+
+	handle @apipaths {
+		redir https://terraex.at
+	}
+
+	handle {
+		authorize with adminAuthPolicy
+
+		reverse_proxy localhost:8000
+	}
+}
